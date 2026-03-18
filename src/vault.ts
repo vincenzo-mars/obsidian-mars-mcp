@@ -1,11 +1,8 @@
 import * as fs from "fs/promises";
-import * as path from "path";
 import * as os from "os";
+import * as path from "path";
 
 export const VAULT_ROOT = (() => {
-  const envPath = process.env.VAULT_PATH;
-  if (envPath) return path.resolve(envPath);
-  // Default: ~/Documenti/Obsidian (macOS italiano)
   return path.join(os.homedir(), "Documenti", "Obsidian");
 })();
 
@@ -15,7 +12,11 @@ export const VAULT_ROOT = (() => {
  */
 export function resolvePath(notePath: string, addExtension = true): string {
   let normalized = notePath;
-  if (addExtension && !normalized.endsWith(".md") && !path.extname(normalized)) {
+  if (
+    addExtension &&
+    !normalized.endsWith(".md") &&
+    !path.extname(normalized)
+  ) {
     normalized += ".md";
   }
   const resolved = path.resolve(VAULT_ROOT, normalized);
@@ -39,7 +40,9 @@ export async function checkVaultExists(): Promise<void> {
   try {
     await fs.access(VAULT_ROOT);
   } catch {
-    throw new Error(`Vault non trovata: ${VAULT_ROOT}\nImposta VAULT_PATH nella variabile d'ambiente.`);
+    throw new Error(
+      `Vault non trovata: ${VAULT_ROOT}\nImposta VAULT_PATH nella variabile d'ambiente.`,
+    );
   }
 }
 
