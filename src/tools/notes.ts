@@ -12,15 +12,18 @@ import {
 } from "../vault.js";
 
 export function registerNoteTools(server: McpServer): void {
-  server.tool(
+  server.registerTool(
     "read_note",
-    "Legge il contenuto completo di una nota Obsidian. Restituisce frontmatter e corpo separati.",
     {
-      path: z
-        .string()
-        .describe(
-          "Path della nota relativo alla vault (es. 'folder/nota' o 'nota.md')",
-        ),
+      description:
+        "Legge il contenuto completo di una nota Obsidian. Restituisce frontmatter e corpo separati.",
+      inputSchema: {
+        path: z
+          .string()
+          .describe(
+            "Path della nota relativo alla vault (es. 'folder/nota' o 'nota.md')",
+          ),
+      },
     },
     async ({ path: notePath }) => {
       const absPath = resolvePath(notePath);
@@ -46,16 +49,18 @@ export function registerNoteTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "create_note",
-    "Crea una nuova nota Obsidian. Errore se la nota esiste già.",
     {
-      path: z.string().describe("Path della nota relativo alla vault"),
-      content: z.string().describe("Corpo della nota in Markdown"),
-      frontmatter: z
-        .record(z.unknown())
-        .optional()
-        .describe("Campi frontmatter YAML opzionali (es. { tags: ['idea'] })"),
+      description: "Crea una nuova nota Obsidian. Errore se la nota esiste già.",
+      inputSchema: {
+        path: z.string().describe("Path della nota relativo alla vault"),
+        content: z.string().describe("Corpo della nota in Markdown"),
+        frontmatter: z
+          .record(z.unknown())
+          .optional()
+          .describe("Campi frontmatter YAML opzionali (es. { tags: ['idea'] })"),
+      },
     },
     async ({ path: notePath, content, frontmatter }) => {
       const absPath = resolvePath(notePath);
@@ -85,16 +90,19 @@ export function registerNoteTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "update_note",
-    "Sovrascrive il contenuto di una nota esistente. Il frontmatter viene preservato se non fornito.",
     {
-      path: z.string().describe("Path della nota relativo alla vault"),
-      content: z.string().describe("Nuovo corpo della nota in Markdown"),
-      frontmatter: z
-        .record(z.unknown())
-        .optional()
-        .describe("Nuovo frontmatter. Se omesso, mantiene quello esistente."),
+      description:
+        "Sovrascrive il contenuto di una nota esistente. Il frontmatter viene preservato se non fornito.",
+      inputSchema: {
+        path: z.string().describe("Path della nota relativo alla vault"),
+        content: z.string().describe("Nuovo corpo della nota in Markdown"),
+        frontmatter: z
+          .record(z.unknown())
+          .optional()
+          .describe("Nuovo frontmatter. Se omesso, mantiene quello esistente."),
+      },
     },
     async ({ path: notePath, content, frontmatter }) => {
       const absPath = resolvePath(notePath);
@@ -120,12 +128,14 @@ export function registerNoteTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "append_to_note",
-    "Aggiunge testo in fondo a una nota esistente.",
     {
-      path: z.string().describe("Path della nota relativo alla vault"),
-      content: z.string().describe("Testo da aggiungere in fondo"),
+      description: "Aggiunge testo in fondo a una nota esistente.",
+      inputSchema: {
+        path: z.string().describe("Path della nota relativo alla vault"),
+        content: z.string().describe("Testo da aggiungere in fondo"),
+      },
     },
     async ({ path: notePath, content }) => {
       const absPath = resolvePath(notePath);
@@ -146,10 +156,14 @@ export function registerNoteTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "delete_note",
-    "Elimina definitivamente una nota dalla vault.",
-    { path: z.string().describe("Path della nota relativo alla vault") },
+    {
+      description: "Elimina definitivamente una nota dalla vault.",
+      inputSchema: {
+        path: z.string().describe("Path della nota relativo alla vault"),
+      },
+    },
     async ({ path: notePath }) => {
       const absPath = resolvePath(notePath);
       try {
@@ -168,21 +182,23 @@ export function registerNoteTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "list_notes",
-    "Elenca le note nella vault o in una sottocartella.",
     {
-      folder: z
-        .string()
-        .optional()
-        .describe(
-          "Sottocartella relativa alla vault. Ometti per listare tutta la vault.",
-        ),
-      recursive: z
-        .boolean()
-        .optional()
-        .default(true)
-        .describe("Includi sottocartelle (default: true)"),
+      description: "Elenca le note nella vault o in una sottocartella.",
+      inputSchema: {
+        folder: z
+          .string()
+          .optional()
+          .describe(
+            "Sottocartella relativa alla vault. Ometti per listare tutta la vault.",
+          ),
+        recursive: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe("Includi sottocartelle (default: true)"),
+      },
     },
     async ({ folder, recursive }) => {
       const base = folder ? resolvePath(folder, false) : VAULT_PATH;

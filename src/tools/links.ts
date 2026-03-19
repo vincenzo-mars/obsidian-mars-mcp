@@ -28,10 +28,14 @@ async function resolveWikilink(
 }
 
 export function registerLinkTools(server: McpServer): void {
-  server.tool(
+  server.registerTool(
     "get_links",
-    "Restituisce tutti i [[wikilink]] in uscita da una nota.",
-    { path: z.string().describe("Path della nota relativo alla vault") },
+    {
+      description: "Restituisce tutti i [[wikilink]] in uscita da una nota.",
+      inputSchema: {
+        path: z.string().describe("Path della nota relativo alla vault"),
+      },
+    },
     async ({ path: notePath }) => {
       const absPath = resolvePath(notePath);
       let raw: string;
@@ -57,15 +61,18 @@ export function registerLinkTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "get_backlinks",
-    "Trova tutte le note che linkano a una nota specifica tramite [[wikilink]].",
     {
-      note_name: z
-        .string()
-        .describe(
-          "Nome della nota da cercare come destinazione (con o senza .md, es. 'MiaNota')",
-        ),
+      description:
+        "Trova tutte le note che linkano a una nota specifica tramite [[wikilink]].",
+      inputSchema: {
+        note_name: z
+          .string()
+          .describe(
+            "Nome della nota da cercare come destinazione (con o senza .md, es. 'MiaNota')",
+          ),
+      },
     },
     async ({ note_name }) => {
       const targetBase = path.basename(note_name, ".md");
@@ -103,14 +110,17 @@ export function registerLinkTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "get_broken_links",
-    "Trova tutti i [[wikilink]] che puntano a note inesistenti nella vault.",
     {
-      folder: z
-        .string()
-        .optional()
-        .describe("Limita la ricerca a una sottocartella della vault"),
+      description:
+        "Trova tutti i [[wikilink]] che puntano a note inesistenti nella vault.",
+      inputSchema: {
+        folder: z
+          .string()
+          .optional()
+          .describe("Limita la ricerca a una sottocartella della vault"),
+      },
     },
     async ({ folder }) => {
       const base = folder ? resolvePath(folder, false) : VAULT_PATH;
@@ -152,23 +162,26 @@ export function registerLinkTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "get_link_graph",
-    "Restituisce il grafo delle relazioni tra note come lista di archi { source, target }. " +
-      "Utile per visualizzare connessioni o analizzare la struttura della vault.",
     {
-      folder: z
-        .string()
-        .optional()
-        .describe("Limita il grafo a una sottocartella della vault"),
-      depth: z
-        .number()
-        .int()
-        .min(1)
-        .max(5)
-        .optional()
-        .default(1)
-        .describe("Profondità massima del grafo (1 = solo link diretti)."),
+      description:
+        "Restituisce il grafo delle relazioni tra note come lista di archi { source, target }. " +
+        "Utile per visualizzare connessioni o analizzare la struttura della vault.",
+      inputSchema: {
+        folder: z
+          .string()
+          .optional()
+          .describe("Limita il grafo a una sottocartella della vault"),
+        depth: z
+          .number()
+          .int()
+          .min(1)
+          .max(5)
+          .optional()
+          .default(1)
+          .describe("Profondità massima del grafo (1 = solo link diretti)."),
+      },
     },
     async ({ folder }) => {
       const base = folder ? resolvePath(folder, false) : VAULT_PATH;

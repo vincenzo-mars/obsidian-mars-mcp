@@ -7,15 +7,18 @@ import { z } from "zod";
 import { resolvePath, VAULT_PATH } from "../vault.js";
 
 export function registerSearchTools(server: McpServer): void {
-  server.tool(
+  server.registerTool(
     "search_notes",
-    "Ricerca full-text nel contenuto delle note. Restituisce le note che contengono la query con un estratto del contesto.",
     {
-      query: z.string().describe("Testo da cercare (case-insensitive)"),
-      folder: z
-        .string()
-        .optional()
-        .describe("Limita la ricerca a una sottocartella della vault"),
+      description:
+        "Ricerca full-text nel contenuto delle note. Restituisce le note che contengono la query con un estratto del contesto.",
+      inputSchema: {
+        query: z.string().describe("Testo da cercare (case-insensitive)"),
+        folder: z
+          .string()
+          .optional()
+          .describe("Limita la ricerca a una sottocartella della vault"),
+      },
     },
     async ({ query, folder }) => {
       const base = folder ? resolvePath(folder, false) : VAULT_PATH;
@@ -69,19 +72,22 @@ export function registerSearchTools(server: McpServer): void {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "search_by_tag",
-    "Trova tutte le note che contengono un tag specifico nel frontmatter YAML o nel corpo come #tag.",
     {
-      tag: z
-        .string()
-        .describe(
-          "Tag da cercare (con o senza '#', es. 'idea' oppure '#idea')",
-        ),
-      folder: z
-        .string()
-        .optional()
-        .describe("Limita la ricerca a una sottocartella della vault"),
+      description:
+        "Trova tutte le note che contengono un tag specifico nel frontmatter YAML o nel corpo come #tag.",
+      inputSchema: {
+        tag: z
+          .string()
+          .describe(
+            "Tag da cercare (con o senza '#', es. 'idea' oppure '#idea')",
+          ),
+        folder: z
+          .string()
+          .optional()
+          .describe("Limita la ricerca a una sottocartella della vault"),
+      },
     },
     async ({ tag, folder }) => {
       const cleanTag = tag.startsWith("#") ? tag.slice(1) : tag;
