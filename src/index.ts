@@ -30,7 +30,7 @@ async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  console.info(`obsidian-mcp avviato. Vault: ${VAULT_PATH}`);
+  console.error(`obsidian-mcp avviato. Vault: ${VAULT_PATH}`);
 }
 
 main().catch((err) => {
