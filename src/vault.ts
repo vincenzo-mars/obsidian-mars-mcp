@@ -1,10 +1,11 @@
 import * as fs from "fs/promises";
-import * as os from "os";
 import * as path from "path";
 
-export const VAULT_ROOT = (() => {
-  return path.join(os.homedir(), "Documenti", "Obsidian");
-})();
+if (!process.env.VAULT_PATH) {
+  throw new Error("Variabile d'ambiente VAULT_PATH non impostata.");
+}
+
+export const VAULT_PATH = path.resolve(process.env.VAULT_PATH);
 
 /**
  * Risolve un path relativo alla vault e verifica che non esca dalla root.
@@ -19,8 +20,8 @@ export function resolvePath(notePath: string, addExtension = true): string {
   ) {
     normalized += ".md";
   }
-  const resolved = path.resolve(VAULT_ROOT, normalized);
-  if (!resolved.startsWith(VAULT_ROOT + path.sep) && resolved !== VAULT_ROOT) {
+  const resolved = path.resolve(VAULT_PATH, normalized);
+  if (!resolved.startsWith(VAULT_PATH + path.sep) && resolved !== VAULT_PATH) {
     throw new Error(`Accesso negato: path fuori dalla vault`);
   }
   return resolved;
@@ -30,7 +31,7 @@ export function resolvePath(notePath: string, addExtension = true): string {
  * Restituisce il path relativo alla vault root (per output user-friendly).
  */
 export function relativePath(absolutePath: string): string {
-  return path.relative(VAULT_ROOT, absolutePath);
+  return path.relative(VAULT_PATH, absolutePath);
 }
 
 /**
@@ -38,10 +39,10 @@ export function relativePath(absolutePath: string): string {
  */
 export async function checkVaultExists(): Promise<void> {
   try {
-    await fs.access(VAULT_ROOT);
+    await fs.access(VAULT_PATH);
   } catch {
     throw new Error(
-      `Vault non trovata: ${VAULT_ROOT}\nImposta VAULT_PATH nella variabile d'ambiente.`,
+      `Vault non trovata: ${VAULT_PATH}\nImposta VAULT_PATH nella variabile d'ambiente.`,
     );
   }
 }
