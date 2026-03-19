@@ -1,8 +1,8 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as fs from "fs/promises";
 import matter from "gray-matter";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { resolvePath, relativePath } from "../vault.js";
+import { relativePath, resolvePath } from "../vault.js";
 
 export function registerFrontmatterTools(server: McpServer): void {
   // ── get_frontmatter ────────────────────────────────────────────────────────
@@ -23,11 +23,15 @@ export function registerFrontmatterTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify({ path: relativePath(absPath), frontmatter }, null, 2),
+            text: JSON.stringify(
+              { path: relativePath(absPath), frontmatter },
+              null,
+              2,
+            ),
           },
         ],
       };
-    }
+    },
   );
 
   // ── update_frontmatter ─────────────────────────────────────────────────────
@@ -40,7 +44,9 @@ export function registerFrontmatterTools(server: McpServer): void {
       path: z.string().describe("Path della nota relativo alla vault"),
       fields: z
         .record(z.unknown())
-        .describe("Campi da aggiornare/aggiungere. Es: { tags: ['idea', 'todo'], status: 'done' }"),
+        .describe(
+          "Campi da aggiornare/aggiungere. Es: { tags: ['idea', 'todo'], status: 'done' }",
+        ),
     },
     async ({ path: notePath, fields }) => {
       const absPath = resolvePath(notePath);
@@ -68,10 +74,14 @@ export function registerFrontmatterTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify({ path: relativePath(absPath), frontmatter: merged }, null, 2),
+            text: JSON.stringify(
+              { path: relativePath(absPath), frontmatter: merged },
+              null,
+              2,
+            ),
           },
         ],
       };
-    }
+    },
   );
 }
