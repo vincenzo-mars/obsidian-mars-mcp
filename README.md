@@ -1,20 +1,22 @@
 # obsidian-mcp
 
-A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that gives AI assistants (Claude, and others) direct access to an [Obsidian](https://obsidian.md) vault — read, write, search, manage links, folders, and tasks.
+A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that gives AI assistants (Claude, and others) direct access to an [Obsidian](https://obsidian.md) vault — read, write, search, and manage folders.
 
 ## Features
 
-**20 tools** across 7 categories:
+**11 tools** across 3 categories + 1 prompt:
 
 | Category | Tools |
 |---|---|
 | Notes | `read_note`, `create_note`, `update_note`, `append_to_note`, `delete_note`, `list_notes` |
 | Search | `search_notes`, `search_by_tag` |
-| Frontmatter | `get_frontmatter`, `update_frontmatter` |
-| Links | `get_links`, `get_backlinks`, `get_broken_links`, `get_link_graph` |
-| Move | `move_note` |
 | Folders | `list_folders`, `create_folder`, `delete_folder` |
-| Tasks | `find_tasks`, `get_note_tasks` |
+
+| Prompts | Description |
+|---|---|
+| `learn` | Generate a professional learning note on a given topic |
+
+> **Note:** The following tool groups exist in the codebase but are currently disabled: `links` (`get_links`, `get_backlinks`, `get_broken_links`, `get_link_graph`), `move` (`move_note`), `frontmatter` (`get_frontmatter`, `update_frontmatter`), `tasks` (`find_tasks`, `get_note_tasks`).
 
 ## Requirements
 
@@ -174,66 +176,6 @@ folder  — optional subfolder to limit the search
 
 ---
 
-### Frontmatter
-
-#### `get_frontmatter`
-Read the YAML frontmatter of a note as a JSON object.
-```
-path  — vault-relative path
-```
-
-#### `update_frontmatter`
-Merge new fields into existing frontmatter. Pass `null` as a value to delete a field.
-```
-path   — vault-relative path
-fields — object with fields to set or delete
-```
-
----
-
-### Links
-
-#### `get_links`
-Return all outgoing `[[wikilinks]]` from a note.
-```
-path  — vault-relative path
-```
-
-#### `get_backlinks`
-Find all notes that link to a given note.
-```
-note_name  — target note name (with or without ".md")
-```
-
-#### `get_broken_links`
-Find all wikilinks pointing to notes that do not exist.
-```
-folder  — optional subfolder to limit the search
-```
-
-#### `get_link_graph`
-Return the link graph as a list of `{ source, target }` edges.
-```
-folder  — optional subfolder to limit the graph
-depth   — max depth, 1–5 (default: 1)
-```
-
----
-
-### Move
-
-#### `move_note`
-Move or rename a note. Automatically updates all `[[wikilinks]]` pointing to the old name across the entire vault.
-```
-source_path       — current vault-relative path
-destination_path  — new vault-relative path
-```
-- Same folder → rename
-- Different folder → move
-- Returns `{ moved_from, moved_to, links_updated }`
-
----
-
 ### Folders
 
 #### `list_folders`
@@ -258,22 +200,22 @@ force  — delete recursively even if not empty (default: false)
 
 ---
 
-### Tasks
+## Prompt Reference
 
-#### `find_tasks`
-Find tasks (`- [ ]` and `- [x]`) across the vault or a folder.
+### `learn`
+Generates a prompt to create a professional learning note in the vault on a given topic.
 ```
-status     — "all" | "incomplete" | "complete"
-folder     — optional subfolder to limit the search
-recursive  — include subfolders (default: true)
+topic  — the subject of the learning note
 ```
-Returns `{ note_path, line_number, task_text, completed }` for each task.
+The generated note includes: a concise presentation of the topic, authoritative sources, and a wikilink added to the existing training index. No frontmatter or internal wikilinks to non-existent notes.
 
-#### `get_note_tasks`
-Get all tasks in a specific note.
-```
-path  — vault-relative path
-```
+---
+
+## Development Tooling
+
+- **Biome** — formatting and linting (`npm run format`, `npm run lint`, `npm run check`)
+- **Husky + lint-staged** — pre-commit hooks that run Biome on staged files
+- **Commitizen** — conventional commits via `npm run commit`
 
 ---
 
