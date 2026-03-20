@@ -41,7 +41,8 @@ export function registerNoteTools(server: McpServer): void {
   server.registerTool(
     "create_note",
     {
-      description: "Crea una nuova nota Obsidian. Errore se la nota esiste già.",
+      description:
+        "Crea una nuova nota Obsidian. Se la nota esiste già, usa overwrite: true per sovrascriverla invece di ricevere un errore.",
       inputSchema: {
         path: z.string().describe("Path della nota relativo alla vault"),
         content: z.string().describe("Corpo della nota in Markdown"),
@@ -49,15 +50,21 @@ export function registerNoteTools(server: McpServer): void {
           .record(z.unknown())
           .optional()
           .describe("Campi frontmatter YAML opzionali (es. { tags: ['idea'] })"),
+        overwrite: z
+          .boolean()
+          .optional()
+          .default(false)
+          .describe("Se true, sovrascrive la nota se esiste già (default: false)"),
       },
     },
-    async ({ path: notePath, content, frontmatter }) => {
+    async ({ path: notePath, content, frontmatter, overwrite }) => {
       const absPath = resolvePath(notePath);
-      try {
-        await fs.access(absPath);
-        throw new Error(`La nota esiste già: ${notePath}`);
-      } catch (err) {
-        if (err instanceof Error && err.message.startsWith("La nota esiste già")) throw err;
+      const exists = await fs
+        .access(absPath)
+        .then(() => true)
+        .catch(() => false);
+      if (exists && !overwrite) {
+        throw new Error(`La nota esiste già: ${notePath}. Usa overwrite: true per sovrascriverla.`);
       }
       await ensureParentDir(absPath);
       const raw = frontmatter ? matter.stringify(content, frontmatter) : content;
@@ -66,7 +73,9 @@ export function registerNoteTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: `Nota creata: ${relativePath(absPath)}`,
+            text: exists
+              ? `Nota sovrascritta: ${relativePath(absPath)}`
+              : `Nota creata: ${relativePath(absPath)}`,
           },
         ],
       };
