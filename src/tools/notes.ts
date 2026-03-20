@@ -9,7 +9,7 @@ import {
   relativePath,
   resolvePath,
   VAULT_PATH,
-} from "../vault.js";
+} from "../vault-utils.js";
 
 export function registerNoteTools(server: McpServer): void {
   server.registerTool(
@@ -52,14 +52,17 @@ export function registerNoteTools(server: McpServer): void {
   server.registerTool(
     "create_note",
     {
-      description: "Crea una nuova nota Obsidian. Errore se la nota esiste già.",
+      description:
+        "Crea una nuova nota Obsidian. Errore se la nota esiste già.",
       inputSchema: {
         path: z.string().describe("Path della nota relativo alla vault"),
         content: z.string().describe("Corpo della nota in Markdown"),
         frontmatter: z
           .record(z.unknown())
           .optional()
-          .describe("Campi frontmatter YAML opzionali (es. { tags: ['idea'] })"),
+          .describe(
+            "Campi frontmatter YAML opzionali (es. { tags: ['idea'] })",
+          ),
       },
     },
     async ({ path: notePath, content, frontmatter }) => {

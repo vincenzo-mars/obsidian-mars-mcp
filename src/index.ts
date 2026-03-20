@@ -2,14 +2,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from "./constants.js";
+import { registerLearningPrompts } from "./prompts/prompts.js";
 import { registerFolderTools } from "./tools/folders.js";
-import { registerFrontmatterTools } from "./tools/frontmatter.js";
-import { registerLinkTools } from "./tools/links.js";
-import { registerMoveTools } from "./tools/move.js";
 import { registerNoteTools } from "./tools/notes.js";
 import { registerSearchTools } from "./tools/search.js";
-import { registerTaskTools } from "./tools/tasks.js";
-import { checkVaultExists, VAULT_PATH } from "./vault.js";
+import { checkVaultExists } from "./vault-utils.js";
 
 async function main(): Promise<void> {
   await checkVaultExists();
@@ -19,21 +16,20 @@ async function main(): Promise<void> {
     version: MCP_SERVER_VERSION,
   });
 
+  registerLearningPrompts(server);
   registerNoteTools(server);
-  registerSearchTools(server);
-  registerFrontmatterTools(server);
-  registerLinkTools(server);
-  registerMoveTools(server);
   registerFolderTools(server);
-  registerTaskTools(server);
+  registerSearchTools(server);
+  // registerLinkTools(server);
+  // registerMoveTools(server);
+  // registerTaskTools(server);
+  // registerFrontmatterTools(server);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-
-  console.error(`obsidian-mcp avviato. Vault: ${VAULT_PATH}`);
 }
 
 main().catch((err) => {
-  console.error("Errore fatale:", err);
+  console.error(err);
   process.exit(1);
 });

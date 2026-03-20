@@ -8,7 +8,7 @@ import {
   relativePath,
   resolvePath,
   VAULT_PATH,
-} from "../vault.js";
+} from "../vault-utils.js";
 
 export function registerMoveTools(server: McpServer): void {
   server.registerTool(

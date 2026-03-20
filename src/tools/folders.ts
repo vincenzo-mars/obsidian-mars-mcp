@@ -3,7 +3,7 @@ import fg from "fast-glob";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { z } from "zod";
-import { relativePath, resolvePath, VAULT_PATH } from "../vault.js";
+import { relativePath, resolvePath, VAULT_PATH } from "../vault-utils.js";
 
 export function registerFolderTools(server: McpServer): void {
   server.registerTool(

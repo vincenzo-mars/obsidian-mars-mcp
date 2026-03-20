@@ -4,7 +4,7 @@ import * as fs from "fs/promises";
 import matter from "gray-matter";
 import * as path from "path";
 import { z } from "zod";
-import { resolvePath, VAULT_PATH } from "../vault.js";
+import { resolvePath, VAULT_PATH } from "../vault-utils.js";
 
 export function registerSearchTools(server: McpServer): void {
   server.registerTool(
