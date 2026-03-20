@@ -1,26 +1,35 @@
-import * as fs from "fs/promises";
-import * as path from "path";
-import matter from "gray-matter";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
-import { resolvePath, VAULT_ROOT } from "../vault.js";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import fg from "fast-glob";
+import matter from "gray-matter";
+import { z } from "zod";
+import { resolvePath, VAULT_PATH } from "../vault-utils.js";
 
 export function registerSearchTools(server: McpServer): void {
-  // ── search_notes ───────────────────────────────────────────────────────────
-  server.tool(
+  server.registerTool(
     "search_notes",
-    "Ricerca full-text nel contenuto delle note. Restituisce le note che contengono la query con un estratto del contesto.",
     {
-      query: z.string().describe("Testo da cercare (case-insensitive)"),
-      folder: z.string().optional().describe("Limita la ricerca a una sottocartella della vault"),
+      description:
+        "Ricerca full-text nel contenuto delle note. Restituisce le note che contengono la query con un estratto del contesto.",
+      inputSchema: {
+        query: z.string().describe("Testo da cercare (case-insensitive)"),
+        folder: z.string().optional().describe("Limita la ricerca a una sottocartella della vault"),
+      },
     },
     async ({ query, folder }) => {
-      const base = folder ? resolvePath(folder, false) : VAULT_ROOT;
-      const files = await fg("**/*.md", { cwd: base, onlyFiles: true, dot: false });
+      const base = folder ? resolvePath(folder, false) : VAULT_PATH;
+      const files = await fg("**/*.md", {
+        cwd: base,
+        onlyFiles: true,
+        dot: false,
+      });
       const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
 
-      const results: Array<{ path: string; matches: Array<{ line: number; text: string }> }> = [];
+      const results: Array<{
+        path: string;
+        matches: Array<{ line: number; text: string }>;
+      }> = [];
 
       for (const file of files) {
         const absPath = path.join(base, file);
@@ -50,21 +59,27 @@ export function registerSearchTools(server: McpServer): void {
           },
         ],
       };
-    }
+    },
   );
 
-  // ── search_by_tag ──────────────────────────────────────────────────────────
-  server.tool(
+  server.registerTool(
     "search_by_tag",
-    "Trova tutte le note che contengono un tag specifico nel frontmatter YAML o nel corpo come #tag.",
     {
-      tag: z.string().describe("Tag da cercare (con o senza '#', es. 'idea' oppure '#idea')"),
-      folder: z.string().optional().describe("Limita la ricerca a una sottocartella della vault"),
+      description:
+        "Trova tutte le note che contengono un tag specifico nel frontmatter YAML o nel corpo come #tag.",
+      inputSchema: {
+        tag: z.string().describe("Tag da cercare (con o senza '#', es. 'idea' oppure '#idea')"),
+        folder: z.string().optional().describe("Limita la ricerca a una sottocartella della vault"),
+      },
     },
     async ({ tag, folder }) => {
       const cleanTag = tag.startsWith("#") ? tag.slice(1) : tag;
-      const base = folder ? resolvePath(folder, false) : VAULT_ROOT;
-      const files = await fg("**/*.md", { cwd: base, onlyFiles: true, dot: false });
+      const base = folder ? resolvePath(folder, false) : VAULT_PATH;
+      const files = await fg("**/*.md", {
+        cwd: base,
+        onlyFiles: true,
+        dot: false,
+      });
       const inlineRegex = new RegExp(`(?:^|\\s)#${cleanTag}(?:\\s|$)`, "m");
 
       const notes: string[] = [];
@@ -77,7 +92,7 @@ export function registerSearchTools(server: McpServer): void {
         const inFrontmatter =
           Array.isArray(frontmatter.tags) &&
           frontmatter.tags.some(
-            (t: unknown) => typeof t === "string" && t.toLowerCase() === cleanTag.toLowerCase()
+            (t: unknown) => typeof t === "string" && t.toLowerCase() === cleanTag.toLowerCase(),
           );
 
         const inBody = inlineRegex.test(content);
@@ -96,6 +111,6 @@ export function registerSearchTools(server: McpServer): void {
           },
         ],
       };
-    }
+    },
   );
 }

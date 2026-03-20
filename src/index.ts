@@ -1,36 +1,35 @@
 #!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { checkVaultExists, VAULT_ROOT } from "./vault.js";
+import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from "./constants.js";
+import { registerLearningPrompts } from "./prompts/prompts.js";
+import { registerFolderTools } from "./tools/folders.js";
 import { registerNoteTools } from "./tools/notes.js";
 import { registerSearchTools } from "./tools/search.js";
-import { registerFrontmatterTools } from "./tools/frontmatter.js";
-import { registerLinkTools } from "./tools/links.js";
+import { checkVaultExists } from "./vault-utils.js";
 
 async function main(): Promise<void> {
-  // Verifica che la vault esista prima di avviare il server
   await checkVaultExists();
 
   const server = new McpServer({
-    name: "obsidian-mcp",
-    version: "1.0.0",
+    name: MCP_SERVER_NAME,
+    version: MCP_SERVER_VERSION,
   });
 
-  // Registra tutti i tool
+  registerLearningPrompts(server);
   registerNoteTools(server);
+  registerFolderTools(server);
   registerSearchTools(server);
-  registerFrontmatterTools(server);
-  registerLinkTools(server);
+  // registerLinkTools(server);
+  // registerMoveTools(server);
+  // registerTaskTools(server);
+  // registerFrontmatterTools(server);
 
-  // Avvia con trasporto stdio (standard per MCP locale)
   const transport = new StdioServerTransport();
   await server.connect(transport);
-
-  // Log su stderr (NON stdout — altrimenti corrompe JSON-RPC)
-  console.error(`obsidian-mcp avviato. Vault: ${VAULT_ROOT}`);
 }
 
 main().catch((err) => {
-  console.error("Errore fatale:", err);
+  console.error(err);
   process.exit(1);
 });

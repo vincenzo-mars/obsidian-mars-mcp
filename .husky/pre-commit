@@ -1,0 +1,15 @@
+#!/bin/sh
+
+echo "🔍 [pre-commit] Running lint-staged..."
+npx lint-staged
+echo "✅ [pre-commit] lint-staged passed"
+
+echo "🔍 [pre-commit] Type-checking with tsc..."
+npx tsc --noEmit
+echo "✅ [pre-commit] Type-check passed"
+
+echo "🔍 [pre-commit] Building..."
+npm run build
+echo "✅ [pre-commit] Build passed"
+
+echo "🎉 [pre-commit] All checks passed!"

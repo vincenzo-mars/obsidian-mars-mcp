@@ -1,15 +1,19 @@
-import * as fs from "fs/promises";
+import * as fs from "node:fs/promises";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import matter from "gray-matter";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { resolvePath, relativePath } from "../vault.js";
+import { relativePath, resolvePath } from "../vault-utils.js";
 
 export function registerFrontmatterTools(server: McpServer): void {
   // ── get_frontmatter ────────────────────────────────────────────────────────
-  server.tool(
+  server.registerTool(
     "get_frontmatter",
-    "Legge e restituisce il frontmatter YAML di una nota come oggetto JSON.",
-    { path: z.string().describe("Path della nota relativo alla vault") },
+    {
+      description: "Legge e restituisce il frontmatter YAML di una nota come oggetto JSON.",
+      inputSchema: {
+        path: z.string().describe("Path della nota relativo alla vault"),
+      },
+    },
     async ({ path: notePath }) => {
       const absPath = resolvePath(notePath);
       let raw: string;
@@ -27,20 +31,25 @@ export function registerFrontmatterTools(server: McpServer): void {
           },
         ],
       };
-    }
+    },
   );
 
   // ── update_frontmatter ─────────────────────────────────────────────────────
-  server.tool(
+  server.registerTool(
     "update_frontmatter",
-    "Aggiorna o aggiunge campi al frontmatter YAML di una nota (merge non distruttivo). " +
-      "I campi esistenti non specificati vengono mantenuti. " +
-      "Per rimuovere un campo, impostarlo a null.",
     {
-      path: z.string().describe("Path della nota relativo alla vault"),
-      fields: z
-        .record(z.unknown())
-        .describe("Campi da aggiornare/aggiungere. Es: { tags: ['idea', 'todo'], status: 'done' }"),
+      description:
+        "Aggiorna o aggiunge campi al frontmatter YAML di una nota (merge non distruttivo). " +
+        "I campi esistenti non specificati vengono mantenuti. " +
+        "Per rimuovere un campo, impostarlo a null.",
+      inputSchema: {
+        path: z.string().describe("Path della nota relativo alla vault"),
+        fields: z
+          .record(z.unknown())
+          .describe(
+            "Campi da aggiornare/aggiungere. Es: { tags: ['idea', 'todo'], status: 'done' }",
+          ),
+      },
     },
     async ({ path: notePath, fields }) => {
       const absPath = resolvePath(notePath);
@@ -72,6 +81,6 @@ export function registerFrontmatterTools(server: McpServer): void {
           },
         ],
       };
-    }
+    },
   );
 }
