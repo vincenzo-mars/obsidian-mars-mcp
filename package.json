@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-mcp",
+  "name": "obsidian-mars-mcp",
   "version": "1.0.0",
   "description": "MCP server for Obsidian vault — read, write, search notes and manage links",
   "type": "module",
