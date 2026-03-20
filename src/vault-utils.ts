@@ -1,5 +1,5 @@
-import * as fs from "fs/promises";
-import * as path from "path";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
 
 if (!process.env.VAULT_PATH) {
   throw new Error("Variabile d'ambiente VAULT_PATH non impostata.");
@@ -9,11 +9,7 @@ export const VAULT_PATH = path.resolve(process.env.VAULT_PATH);
 
 export function resolvePath(notePath: string, addExtension = true): string {
   let normalized = notePath;
-  if (
-    addExtension &&
-    !normalized.endsWith(".md") &&
-    !path.extname(normalized)
-  ) {
+  if (addExtension && !normalized.endsWith(".md") && !path.extname(normalized)) {
     normalized += ".md";
   }
   const resolved = path.resolve(VAULT_PATH, normalized);

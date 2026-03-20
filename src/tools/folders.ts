@@ -1,7 +1,7 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import fg from "fast-glob";
-import * as fs from "fs/promises";
-import * as path from "path";
 import { z } from "zod";
 import { relativePath, resolvePath, VAULT_PATH } from "../vault-utils.js";
 
@@ -9,15 +9,12 @@ export function registerFolderTools(server: McpServer): void {
   server.registerTool(
     "list_folders",
     {
-      description:
-        "Elenca le cartelle nella vault o in una sottocartella specifica.",
+      description: "Elenca le cartelle nella vault o in una sottocartella specifica.",
       inputSchema: {
         folder: z
           .string()
           .optional()
-          .describe(
-            "Sottocartella relativa alla vault. Ometti per listare tutta la vault.",
-          ),
+          .describe("Sottocartella relativa alla vault. Ometti per listare tutta la vault."),
         recursive: z
           .boolean()
           .optional()
@@ -51,8 +48,7 @@ export function registerFolderTools(server: McpServer): void {
   server.registerTool(
     "create_folder",
     {
-      description:
-        "Crea una nuova cartella nella vault. Errore se la cartella esiste già.",
+      description: "Crea una nuova cartella nella vault. Errore se la cartella esiste già.",
       inputSchema: {
         path: z.string().describe("Path della cartella relativo alla vault"),
       },
@@ -63,10 +59,7 @@ export function registerFolderTools(server: McpServer): void {
         await fs.access(absPath);
         throw new Error(`La cartella esiste già: ${folderPath}`);
       } catch (err) {
-        if (
-          err instanceof Error &&
-          err.message.startsWith("La cartella esiste già")
-        ) {
+        if (err instanceof Error && err.message.startsWith("La cartella esiste già")) {
           throw err;
         }
       }
@@ -93,9 +86,7 @@ export function registerFolderTools(server: McpServer): void {
           .boolean()
           .optional()
           .default(false)
-          .describe(
-            "Elimina anche se non vuota, ricorsivamente (default: false)",
-          ),
+          .describe("Elimina anche se non vuota, ricorsivamente (default: false)"),
       },
     },
     async ({ path: folderPath, force }) => {
@@ -114,9 +105,7 @@ export function registerFolderTools(server: McpServer): void {
       if (!force) {
         const entries = await fs.readdir(absPath);
         if (entries.length > 0) {
-          throw new Error(
-            `La cartella non è vuota. Usa force: true per eliminare ricorsivamente.`,
-          );
+          throw new Error(`La cartella non è vuota. Usa force: true per eliminare ricorsivamente.`);
         }
         await fs.rmdir(absPath);
       } else {

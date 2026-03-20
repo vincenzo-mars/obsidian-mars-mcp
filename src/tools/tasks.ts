@@ -1,8 +1,8 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import fg from "fast-glob";
-import * as fs from "fs/promises";
 import matter from "gray-matter";
-import * as path from "path";
 import { z } from "zod";
 import { resolvePath, VAULT_PATH } from "../vault-utils.js";
 
@@ -45,10 +45,7 @@ export function registerTaskTools(server: McpServer): void {
           .describe(
             "Filtra per stato: 'all' tutte, 'incomplete' non completate, 'complete' completate",
           ),
-        folder: z
-          .string()
-          .optional()
-          .describe("Limita la ricerca a una sottocartella della vault"),
+        folder: z.string().optional().describe("Limita la ricerca a una sottocartella della vault"),
         recursive: z
           .boolean()
           .optional()
@@ -77,19 +74,13 @@ export function registerTaskTools(server: McpServer): void {
       const filtered =
         status === "all"
           ? allTasks
-          : allTasks.filter((t) =>
-              status === "complete" ? t.completed : !t.completed,
-            );
+          : allTasks.filter((t) => (status === "complete" ? t.completed : !t.completed));
 
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              { count: filtered.length, tasks: filtered },
-              null,
-              2,
-            ),
+            text: JSON.stringify({ count: filtered.length, tasks: filtered }, null, 2),
           },
         ],
       };
@@ -99,8 +90,7 @@ export function registerTaskTools(server: McpServer): void {
   server.registerTool(
     "get_note_tasks",
     {
-      description:
-        "Restituisce tutti i task ([ ] e [x]) presenti in una nota specifica.",
+      description: "Restituisce tutti i task ([ ] e [x]) presenti in una nota specifica.",
       inputSchema: {
         path: z.string().describe("Path della nota relativo alla vault"),
       },

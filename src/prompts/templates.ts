@@ -18,8 +18,5 @@ Vincoli:
 - La voce nell'indice di formazione deve seguire lo stesso formato delle voci già presenti`;
 
 export function fill(template: string, vars: Record<string, string>): string {
-  return Object.entries(vars).reduce(
-    (s, [k, v]) => s.replaceAll(`{{${k}}}`, v),
-    template,
-  );
+  return Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(`{{${k}}}`, v), template);
 }

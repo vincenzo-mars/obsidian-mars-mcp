@@ -1,14 +1,9 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import fg from "fast-glob";
-import * as fs from "fs/promises";
-import * as path from "path";
 import { z } from "zod";
-import {
-  ensureParentDir,
-  relativePath,
-  resolvePath,
-  VAULT_PATH,
-} from "../vault-utils.js";
+import { ensureParentDir, relativePath, resolvePath, VAULT_PATH } from "../vault-utils.js";
 
 export function registerMoveTools(server: McpServer): void {
   server.registerTool(
@@ -19,12 +14,8 @@ export function registerMoveTools(server: McpServer): void {
         "Aggiorna automaticamente tutti i [[wikilink]] che puntano alla nota rinominata. " +
         "Stesso folder = rinomina; folder diverso = sposta.",
       inputSchema: {
-        source_path: z
-          .string()
-          .describe("Path attuale della nota relativo alla vault"),
-        destination_path: z
-          .string()
-          .describe("Nuovo path della nota relativo alla vault"),
+        source_path: z.string().describe("Path attuale della nota relativo alla vault"),
+        destination_path: z.string().describe("Nuovo path della nota relativo alla vault"),
       },
     },
     async ({ source_path, destination_path }) => {
@@ -45,10 +36,7 @@ export function registerMoveTools(server: McpServer): void {
         await fs.access(absDest);
         throw new Error(`La destinazione esiste già: ${destination_path}`);
       } catch (err) {
-        if (
-          err instanceof Error &&
-          err.message.startsWith("La destinazione esiste già")
-        ) {
+        if (err instanceof Error && err.message.startsWith("La destinazione esiste già")) {
           throw err;
         }
       }
@@ -58,10 +46,7 @@ export function registerMoveTools(server: McpServer): void {
       try {
         await fs.rename(absSource, absDest);
       } catch (err: unknown) {
-        if (
-          err instanceof Error &&
-          (err as NodeJS.ErrnoException).code === "EXDEV"
-        ) {
+        if (err instanceof Error && (err as NodeJS.ErrnoException).code === "EXDEV") {
           await fs.copyFile(absSource, absDest);
           await fs.unlink(absSource);
         } else {
@@ -92,10 +77,7 @@ export function registerMoveTools(server: McpServer): void {
       }
 
       const escaped = oldBasename.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const wikilinkRegex = new RegExp(
-        `\\[\\[${escaped}((?:[|#][^\\]]*)?)\\]\\]`,
-        "g",
-      );
+      const wikilinkRegex = new RegExp(`\\[\\[${escaped}((?:[|#][^\\]]*)?)\\]\\]`, "g");
 
       const allFiles = await fg("**/*.md", {
         cwd: VAULT_PATH,

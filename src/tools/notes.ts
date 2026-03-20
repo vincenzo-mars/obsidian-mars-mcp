@@ -1,15 +1,10 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import fg from "fast-glob";
-import * as fs from "fs/promises";
 import matter from "gray-matter";
-import * as path from "path";
 import { z } from "zod";
-import {
-  ensureParentDir,
-  relativePath,
-  resolvePath,
-  VAULT_PATH,
-} from "../vault-utils.js";
+import { ensureParentDir, relativePath, resolvePath, VAULT_PATH } from "../vault-utils.js";
 
 export function registerNoteTools(server: McpServer): void {
   server.registerTool(
@@ -20,9 +15,7 @@ export function registerNoteTools(server: McpServer): void {
       inputSchema: {
         path: z
           .string()
-          .describe(
-            "Path della nota relativo alla vault (es. 'folder/nota' o 'nota.md')",
-          ),
+          .describe("Path della nota relativo alla vault (es. 'folder/nota' o 'nota.md')"),
       },
     },
     async ({ path: notePath }) => {
@@ -38,11 +31,7 @@ export function registerNoteTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              { path: relativePath(absPath), frontmatter, content },
-              null,
-              2,
-            ),
+            text: JSON.stringify({ path: relativePath(absPath), frontmatter, content }, null, 2),
           },
         ],
       };
@@ -52,17 +41,14 @@ export function registerNoteTools(server: McpServer): void {
   server.registerTool(
     "create_note",
     {
-      description:
-        "Crea una nuova nota Obsidian. Errore se la nota esiste già.",
+      description: "Crea una nuova nota Obsidian. Errore se la nota esiste già.",
       inputSchema: {
         path: z.string().describe("Path della nota relativo alla vault"),
         content: z.string().describe("Corpo della nota in Markdown"),
         frontmatter: z
           .record(z.unknown())
           .optional()
-          .describe(
-            "Campi frontmatter YAML opzionali (es. { tags: ['idea'] })",
-          ),
+          .describe("Campi frontmatter YAML opzionali (es. { tags: ['idea'] })"),
       },
     },
     async ({ path: notePath, content, frontmatter }) => {
@@ -71,16 +57,10 @@ export function registerNoteTools(server: McpServer): void {
         await fs.access(absPath);
         throw new Error(`La nota esiste già: ${notePath}`);
       } catch (err) {
-        if (
-          err instanceof Error &&
-          err.message.startsWith("La nota esiste già")
-        )
-          throw err;
+        if (err instanceof Error && err.message.startsWith("La nota esiste già")) throw err;
       }
       await ensureParentDir(absPath);
-      const raw = frontmatter
-        ? matter.stringify(content, frontmatter)
-        : content;
+      const raw = frontmatter ? matter.stringify(content, frontmatter) : content;
       await fs.writeFile(absPath, raw, "utf-8");
       return {
         content: [
@@ -117,8 +97,7 @@ export function registerNoteTools(server: McpServer): void {
         throw new Error(`Nota non trovata: ${notePath}`);
       }
       const fm = frontmatter ?? existingFrontmatter;
-      const raw =
-        Object.keys(fm).length > 0 ? matter.stringify(content, fm) : content;
+      const raw = Object.keys(fm).length > 0 ? matter.stringify(content, fm) : content;
       await fs.writeFile(absPath, raw, "utf-8");
       return {
         content: [
@@ -147,7 +126,7 @@ export function registerNoteTools(server: McpServer): void {
       } catch {
         throw new Error(`Nota non trovata: ${notePath}`);
       }
-      await fs.appendFile(absPath, "\n" + content, "utf-8");
+      await fs.appendFile(absPath, `\n${content}`, "utf-8");
       return {
         content: [
           {
@@ -193,9 +172,7 @@ export function registerNoteTools(server: McpServer): void {
         folder: z
           .string()
           .optional()
-          .describe(
-            "Sottocartella relativa alla vault. Ometti per listare tutta la vault.",
-          ),
+          .describe("Sottocartella relativa alla vault. Ometti per listare tutta la vault."),
         recursive: z
           .boolean()
           .optional()
@@ -211,9 +188,7 @@ export function registerNoteTools(server: McpServer): void {
         onlyFiles: true,
         dot: false,
       });
-      const notes = files
-        .sort()
-        .map((f) => (folder ? path.join(folder, f) : f));
+      const notes = files.sort().map((f) => (folder ? path.join(folder, f) : f));
       return {
         content: [
           {

@@ -1,29 +1,25 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import fg from "fast-glob";
-import * as fs from "fs/promises";
 import matter from "gray-matter";
-import * as path from "path";
 import { z } from "zod";
 import { resolvePath, VAULT_PATH } from "../vault-utils.js";
 
 function extractWikilinks(content: string): string[] {
   const regex = /\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g;
   const links: string[] = [];
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(content)) !== null) {
+  let match = regex.exec(content);
+  while (match !== null) {
     links.push(match[1].trim());
+    match = regex.exec(content);
   }
   return [...new Set(links)];
 }
 
-async function resolveWikilink(
-  noteName: string,
-  allFiles: string[],
-): Promise<string | null> {
-  const nameWithExt = noteName.endsWith(".md") ? noteName : noteName + ".md";
-  const exact = allFiles.find(
-    (f) => f === nameWithExt || path.basename(f) === nameWithExt,
-  );
+async function resolveWikilink(noteName: string, allFiles: string[]): Promise<string | null> {
+  const nameWithExt = noteName.endsWith(".md") ? noteName : `${noteName}.md`;
+  const exact = allFiles.find((f) => f === nameWithExt || path.basename(f) === nameWithExt);
   return exact ?? null;
 }
 
@@ -50,11 +46,7 @@ export function registerLinkTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              { path: notePath, count: links.length, links },
-              null,
-              2,
-            ),
+            text: JSON.stringify({ path: notePath, count: links.length, links }, null, 2),
           },
         ],
       };
@@ -64,8 +56,7 @@ export function registerLinkTools(server: McpServer): void {
   server.registerTool(
     "get_backlinks",
     {
-      description:
-        "Trova tutte le note che linkano a una nota specifica tramite [[wikilink]].",
+      description: "Trova tutte le note che linkano a una nota specifica tramite [[wikilink]].",
       inputSchema: {
         note_name: z
           .string()
@@ -89,8 +80,7 @@ export function registerLinkTools(server: McpServer): void {
         const { content } = matter(raw);
         const links = extractWikilinks(content);
         const found = links.some(
-          (l) =>
-            path.basename(l, ".md").toLowerCase() === targetBase.toLowerCase(),
+          (l) => path.basename(l, ".md").toLowerCase() === targetBase.toLowerCase(),
         );
         if (found) backlinks.push(file);
       }
@@ -99,11 +89,7 @@ export function registerLinkTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              { note: note_name, count: backlinks.length, backlinks },
-              null,
-              2,
-            ),
+            text: JSON.stringify({ note: note_name, count: backlinks.length, backlinks }, null, 2),
           },
         ],
       };
@@ -113,13 +99,9 @@ export function registerLinkTools(server: McpServer): void {
   server.registerTool(
     "get_broken_links",
     {
-      description:
-        "Trova tutti i [[wikilink]] che puntano a note inesistenti nella vault.",
+      description: "Trova tutti i [[wikilink]] che puntano a note inesistenti nella vault.",
       inputSchema: {
-        folder: z
-          .string()
-          .optional()
-          .describe("Limita la ricerca a una sottocartella della vault"),
+        folder: z.string().optional().describe("Limita la ricerca a una sottocartella della vault"),
       },
     },
     async ({ folder }) => {
@@ -130,8 +112,8 @@ export function registerLinkTools(server: McpServer): void {
         dot: false,
       });
       const searchFiles = folder
-        ? await fg("**/*.md", { cwd: base, onlyFiles: true, dot: false }).then(
-            (f) => f.map((x) => path.join(folder, x)),
+        ? await fg("**/*.md", { cwd: base, onlyFiles: true, dot: false }).then((f) =>
+            f.map((x) => path.join(folder, x)),
           )
         : allFiles;
 
@@ -169,10 +151,7 @@ export function registerLinkTools(server: McpServer): void {
         "Restituisce il grafo delle relazioni tra note come lista di archi { source, target }. " +
         "Utile per visualizzare connessioni o analizzare la struttura della vault.",
       inputSchema: {
-        folder: z
-          .string()
-          .optional()
-          .describe("Limita il grafo a una sottocartella della vault"),
+        folder: z.string().optional().describe("Limita il grafo a una sottocartella della vault"),
         depth: z
           .number()
           .int()
@@ -191,8 +170,8 @@ export function registerLinkTools(server: McpServer): void {
         dot: false,
       });
       const scopeFiles = folder
-        ? await fg("**/*.md", { cwd: base, onlyFiles: true, dot: false }).then(
-            (f) => f.map((x) => path.join(folder, x)),
+        ? await fg("**/*.md", { cwd: base, onlyFiles: true, dot: false }).then((f) =>
+            f.map((x) => path.join(folder, x)),
           )
         : allFiles;
 

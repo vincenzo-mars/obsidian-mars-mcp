@@ -1,8 +1,8 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import fg from "fast-glob";
-import * as fs from "fs/promises";
 import matter from "gray-matter";
-import * as path from "path";
 import { z } from "zod";
 import { resolvePath, VAULT_PATH } from "../vault-utils.js";
 
@@ -14,10 +14,7 @@ export function registerSearchTools(server: McpServer): void {
         "Ricerca full-text nel contenuto delle note. Restituisce le note che contengono la query con un estratto del contesto.",
       inputSchema: {
         query: z.string().describe("Testo da cercare (case-insensitive)"),
-        folder: z
-          .string()
-          .optional()
-          .describe("Limita la ricerca a una sottocartella della vault"),
+        folder: z.string().optional().describe("Limita la ricerca a una sottocartella della vault"),
       },
     },
     async ({ query, folder }) => {
@@ -27,10 +24,7 @@ export function registerSearchTools(server: McpServer): void {
         onlyFiles: true,
         dot: false,
       });
-      const regex = new RegExp(
-        query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-        "gi",
-      );
+      const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
 
       const results: Array<{
         path: string;
@@ -61,11 +55,7 @@ export function registerSearchTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              { query, count: results.length, results },
-              null,
-              2,
-            ),
+            text: JSON.stringify({ query, count: results.length, results }, null, 2),
           },
         ],
       };
@@ -78,15 +68,8 @@ export function registerSearchTools(server: McpServer): void {
       description:
         "Trova tutte le note che contengono un tag specifico nel frontmatter YAML o nel corpo come #tag.",
       inputSchema: {
-        tag: z
-          .string()
-          .describe(
-            "Tag da cercare (con o senza '#', es. 'idea' oppure '#idea')",
-          ),
-        folder: z
-          .string()
-          .optional()
-          .describe("Limita la ricerca a una sottocartella della vault"),
+        tag: z.string().describe("Tag da cercare (con o senza '#', es. 'idea' oppure '#idea')"),
+        folder: z.string().optional().describe("Limita la ricerca a una sottocartella della vault"),
       },
     },
     async ({ tag, folder }) => {
@@ -109,9 +92,7 @@ export function registerSearchTools(server: McpServer): void {
         const inFrontmatter =
           Array.isArray(frontmatter.tags) &&
           frontmatter.tags.some(
-            (t: unknown) =>
-              typeof t === "string" &&
-              t.toLowerCase() === cleanTag.toLowerCase(),
+            (t: unknown) => typeof t === "string" && t.toLowerCase() === cleanTag.toLowerCase(),
           );
 
         const inBody = inlineRegex.test(content);
@@ -126,11 +107,7 @@ export function registerSearchTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              { tag: cleanTag, count: notes.length, notes },
-              null,
-              2,
-            ),
+            text: JSON.stringify({ tag: cleanTag, count: notes.length, notes }, null, 2),
           },
         ],
       };

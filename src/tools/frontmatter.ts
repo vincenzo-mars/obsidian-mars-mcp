@@ -1,5 +1,5 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import * as fs from "fs/promises";
+import * as fs from "node:fs/promises";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import matter from "gray-matter";
 import { z } from "zod";
 import { relativePath, resolvePath } from "../vault-utils.js";
@@ -9,8 +9,7 @@ export function registerFrontmatterTools(server: McpServer): void {
   server.registerTool(
     "get_frontmatter",
     {
-      description:
-        "Legge e restituisce il frontmatter YAML di una nota come oggetto JSON.",
+      description: "Legge e restituisce il frontmatter YAML di una nota come oggetto JSON.",
       inputSchema: {
         path: z.string().describe("Path della nota relativo alla vault"),
       },
@@ -28,11 +27,7 @@ export function registerFrontmatterTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              { path: relativePath(absPath), frontmatter },
-              null,
-              2,
-            ),
+            text: JSON.stringify({ path: relativePath(absPath), frontmatter }, null, 2),
           },
         ],
       };
@@ -82,11 +77,7 @@ export function registerFrontmatterTools(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              { path: relativePath(absPath), frontmatter: merged },
-              null,
-              2,
-            ),
+            text: JSON.stringify({ path: relativePath(absPath), frontmatter: merged }, null, 2),
           },
         ],
       };
